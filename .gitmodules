@@ -1,3 +1,6 @@
 [submodule "test"]
 	path = test
 	url = git@github.com:bugsounet/MMM-Tools.git
+[submodule "modules/MMM-Tools"]
+	path = modules/MMM-Tools
+	url = git@github.com:bugsounet/MMM-Tools.git
