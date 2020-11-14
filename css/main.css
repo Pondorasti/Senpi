@@ -233,3 +233,11 @@ sup {
   border-spacing: 0;
   border-collapse: separate;
 }
+
+iframe {
+  border: none;
+}
+
+#GPHOTO_CURRENT {
+  background-size: cover;
+}
