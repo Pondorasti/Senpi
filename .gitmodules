@@ -4,3 +4,18 @@
 [submodule "modules/MMM-Tools"]
 	path = modules/MMM-Tools
 	url = git@github.com:bugsounet/MMM-Tools.git
+[submodule "modules/MMM-iFrame-Ping"]
+	path = modules/MMM-iFrame-Ping
+	url = git@github.com:AgP42/MMM-iFrame-Ping.git
+[submodule "modules/MMM-Screencast"]
+	path = modules/MMM-Screencast
+	url = git@github.com:kevinatown/MMM-Screencast.git
+[submodule "modules/MMM-Snow"]
+	path = modules/MMM-Snow
+	url = git@github.com:MichMich/MMM-Snow.git
+[submodule "modules/MMM-Xmas"]
+	path = modules/MMM-Xmas
+	url = git@github.com:cowboysdude/MMM-Xmas.git
+[submodule "modules/MMM-GooglePhotos"]
+	path = modules/MMM-GooglePhotos
+	url = git@github.com:ChrisAcrobat/MMM-GooglePhotos.git
