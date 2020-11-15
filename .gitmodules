@@ -19,3 +19,6 @@
 [submodule "modules/MMM-GooglePhotos"]
 	path = modules/MMM-GooglePhotos
 	url = git@github.com:ChrisAcrobat/MMM-GooglePhotos.git
+[submodule "modules/MMM-Remote-Control"]
+	path = modules/MMM-Remote-Control
+	url = git@github.com:Jopyth/MMM-Remote-Control.git

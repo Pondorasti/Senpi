@@ -39,6 +39,17 @@ var config = {
 
 	modules: [
 		{
+   			module: 'MMM-Remote-Control',
+   			// position: 'bottom_left',
+    			config: {
+       				customCommand: {},  // Optional, See "Using Custom Commands" below
+        			showModuleApiMenu: true, // Optional, Enable the Module Controls menu
+        			// uncomment any of the lines below if you're gonna use it
+        			// customMenu: "custom_menu.json", // Optional, See "Custom Menu Items" below
+        			// apiKey: "",         // Optional, See API/README.md for details
+    			}
+		},
+		{
 			module: 'MMM-Xmas',
 			position: 'fullscreen_above'
 		},
@@ -63,7 +74,7 @@ var config = {
 			module: "MMM-GooglePhotos",
   			position: "fullscreen_below",
   			config: {
-				albums: ["MS Party 🥳"], // Set your album name. like ["My wedding", "family share", "Travle to Paris"]
+				albums: ["MS Shenanigans"], // Set your album name. like ["My wedding", "family share", "Travle to Paris"]
 				updateInterval: 1000 * 60, // minimum 10 seconds.
 				sort: "random", // "old", "random", "new"
 				uploadAlbum: null, // Only album created by `create_uploadable_album.js`.
@@ -90,7 +101,7 @@ var config = {
 				// See 'Configuration options' for more information.
 				url: "https://alexandruturcanu.com/secret/github-contributions/",
 				autoRefresh: true,
-				updateInterval: 60, // rotate URLs every 30 seconds
+				updateInterval: 1, // minutes
 				displayLastUpdate: false,
 				width: "100%",
 				height: "160px",
