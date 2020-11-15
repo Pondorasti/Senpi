@@ -101,7 +101,7 @@ var config = {
 				// See 'Configuration options' for more information.
 				url: "https://alexandruturcanu.com/secret/github-contributions/",
 				autoRefresh: true,
-				updateInterval: 1, // minutes
+				updateInterval: 60, // minutes
 				displayLastUpdate: false,
 				width: "100%",
 				height: "160px",
@@ -145,13 +145,21 @@ var config = {
 		},
 		{
 			module: "calendar",
-			header: "US Holidays",
+			header: "Calendar",
 			position: "top_left",
+			// displaySymbol: false,
 			config: {
 				calendars: [
 					{
-						symbol: "calendar-check",
-						url: "webcal://www.calendarlabs.com/ical-calendar/ics/76/US_Holidays.ics"					}
+						symbol: "graduation-cap",
+						maximumNumberOfDays: 2,
+						url: "webcal://calendar.google.com/calendar/ical/alexandru.turcanu%40students.makeschool.com/public/basic.ics"
+					},
+					{
+						symbol: "user",
+						maximumNumberOfDays: 2,
+						url: "webcal://calendar.google.com/calendar/ical/pondorasti%40gmail.com/public/basic.ics"
+					}
 				]
 			}
 		},
