@@ -22,3 +22,6 @@
 [submodule "modules/MMM-Remote-Control"]
 	path = modules/MMM-Remote-Control
 	url = git@github.com:Jopyth/MMM-Remote-Control.git
+[submodule "modules/MMM-NowPlayingOnSpotify"]
+	path = modules/MMM-NowPlayingOnSpotify
+	url = git@github.com:raywo/MMM-NowPlayingOnSpotify.git
