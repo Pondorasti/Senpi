@@ -99,7 +99,7 @@ var config = {
 			position: 'bottom_bar',	// This can be any of the regions.
 			config: {
 				// See 'Configuration options' for more information.
-				url: "https://alexandruturcanu.com/secret/github-contributions/",
+				url: "https://alexandru.so/secret/github-contributions/",
 				autoRefresh: true,
 				updateInterval: 60, // minutes
 				displayLastUpdate: false,
