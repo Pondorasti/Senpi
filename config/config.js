@@ -49,10 +49,10 @@ var config = {
         			// apiKey: "",         // Optional, See API/README.md for details
     			}
 		},
-		{
-			module: 'MMM-Xmas',
-			position: 'fullscreen_above'
-		},
+// 		{
+// 			module: 'MMM-Xmas',
+// 			position: 'fullscreen_above'
+// 		},
 		{
 			module: 'MMM-Snow',
 			// position: 'fullscreen_above',
