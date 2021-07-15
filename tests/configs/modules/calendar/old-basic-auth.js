@@ -3,8 +3,7 @@
  * By Rodrigo Ramírez Norambuena https://rodrigoramirez.com
  * MIT Licensed.
  */
-
-var config = {
+let config = {
 	port: 8080,
 	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
 
@@ -13,7 +12,8 @@ var config = {
 	units: "metric",
 	electronOptions: {
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true
 		}
 	},
 
@@ -25,7 +25,7 @@ var config = {
 				calendars: [
 					{
 						maximumNumberOfDays: 10000,
-						url: "http://localhost:8012/tests/configs/data/calendar_test.ics",
+						url: "http://localhost:8080/tests/configs/data/calendar_test.ics",
 						user: "MagicMirror",
 						pass: "CallMeADog"
 					}

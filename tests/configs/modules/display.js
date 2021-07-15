@@ -1,8 +1,9 @@
 /* Magic Mirror Test config for display setters module using the helloworld module
  *
+ * By Rejas
  * MIT Licensed.
  */
-var config = {
+let config = {
 	port: 8080,
 	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
 
@@ -14,7 +15,8 @@ var config = {
 		width: 800,
 		height: 600,
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true
 		}
 	},
 
@@ -36,6 +38,7 @@ var config = {
 		}
 	]
 };
+
 /*************** DO NOT EDIT THE LINE BELOW ***************/
 if (typeof module !== "undefined") {
 	module.exports = config;

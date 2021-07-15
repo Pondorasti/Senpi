@@ -79,7 +79,7 @@ Module.register("alert", {
 
 		//If module already has an open alert close it
 		if (this.alerts[sender.name]) {
-			this.hide_alert(sender);
+			this.hide_alert(sender, false);
 		}
 
 		//Display title and message only if they are provided in notification parameters
@@ -100,10 +100,13 @@ Module.register("alert", {
 			message: image + message,
 			effect: this.config.alert_effect,
 			ttl: params.timer,
+			onClose: () => this.hide_alert(sender),
 			al_no: "ns-alert"
 		});
+
 		//Show alert
 		this.alerts[sender.name].show();
+
 		//Add timer to dismiss alert and overlay
 		if (params.timer) {
 			setTimeout(() => {
@@ -111,10 +114,10 @@ Module.register("alert", {
 			}, params.timer);
 		}
 	},
-	hide_alert: function (sender) {
+	hide_alert: function (sender, close = true) {
 		//Dismiss alert and remove from this.alerts
 		if (this.alerts[sender.name]) {
-			this.alerts[sender.name].dismiss();
+			this.alerts[sender.name].dismiss(close);
 			this.alerts[sender.name] = null;
 			//Remove overlay
 			const overlay = document.getElementById("overlay");

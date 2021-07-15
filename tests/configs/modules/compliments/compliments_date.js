@@ -1,10 +1,8 @@
 /* Magic Mirror Test config compliments with date type
  *
  * By Rejas
- *
  * MIT Licensed.
  */
-
 let config = {
 	port: 8080,
 	ipWhitelist: ["127.0.0.1", "::ffff:127.0.0.1", "::1"],
@@ -14,7 +12,8 @@ let config = {
 	units: "metric",
 	electronOptions: {
 		webPreferences: {
-			nodeIntegration: true
+			nodeIntegration: true,
+			enableRemoteModule: true
 		}
 	},
 

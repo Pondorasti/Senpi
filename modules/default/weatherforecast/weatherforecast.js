@@ -3,6 +3,8 @@
  *
  * By Michael Teeuw https://michaelteeuw.nl
  * MIT Licensed.
+ *
+ * This module is deprecated. Any additional feature will no longer be merged.
  */
 Module.register("weatherforecast", {
 	// Default module config.
@@ -337,7 +339,9 @@ Module.register("weatherforecast", {
 	 *
 	 * argument data object - Weather information received form openweather.org.
 	 */
-	processWeather: function (data) {
+	processWeather: function (data, momenttz) {
+		let mom = momenttz ? momenttz : moment; // Exception last.
+
 		// Forcast16 (paid) API endpoint provides this data.  Onecall endpoint
 		// does not.
 		if (data.city) {
@@ -351,6 +355,13 @@ Module.register("weatherforecast", {
 		this.forecast = [];
 		var lastDay = null;
 		var forecastData = {};
+		var dayStarts = 8;
+		var dayEnds = 17;
+
+		if (data.city && data.city.sunrise && data.city.sunset) {
+			dayStarts = new Date(mom.unix(data.city.sunrise).locale("en").format("YYYY/MM/DD HH:mm:ss")).getHours();
+			dayEnds = new Date(mom.unix(data.city.sunset).locale("en").format("YYYY/MM/DD HH:mm:ss")).getHours();
+		}
 
 		// Handle different structs between forecast16 and onecall endpoints
 		var forecastList = null;
@@ -370,11 +381,11 @@ Module.register("weatherforecast", {
 			var day;
 			var hour;
 			if (forecast.dt_txt) {
-				day = moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("ddd");
-				hour = moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("H");
+				day = mom(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss").format("ddd");
+				hour = new Date(mom(forecast.dt_txt).locale("en").format("YYYY-MM-DD HH:mm:ss")).getHours();
 			} else {
-				day = moment(forecast.dt, "X").format("ddd");
-				hour = moment(forecast.dt, "X").format("H");
+				day = mom(forecast.dt, "X").format("ddd");
+				hour = new Date(mom(forecast.dt, "X")).getHours();
 			}
 
 			if (day !== lastDay) {
@@ -383,9 +394,8 @@ Module.register("weatherforecast", {
 					icon: this.config.iconTable[forecast.weather[0].icon],
 					maxTemp: this.roundValue(forecast.temp.max),
 					minTemp: this.roundValue(forecast.temp.min),
-					rain: this.processRain(forecast, forecastList)
+					rain: this.processRain(forecast, forecastList, mom)
 				};
-
 				this.forecast.push(forecastData);
 				lastDay = day;
 
@@ -401,7 +411,7 @@ Module.register("weatherforecast", {
 
 				// Since we don't want an icon from the start of the day (in the middle of the night)
 				// we update the icon as long as it's somewhere during the day.
-				if (hour >= 8 && hour <= 17) {
+				if (hour > dayStarts && hour < dayEnds) {
 					forecastData.icon = this.config.iconTable[forecast.weather[0].icon];
 				}
 			}
@@ -463,7 +473,8 @@ Module.register("weatherforecast", {
 	 */
 	roundValue: function (temperature) {
 		var decimals = this.config.roundTemp ? 0 : 1;
-		return parseFloat(temperature).toFixed(decimals);
+		var roundValue = parseFloat(temperature).toFixed(decimals);
+		return roundValue === "-0" ? 0 : roundValue;
 	},
 
 	/* processRain(forecast, allForecasts)
@@ -473,16 +484,18 @@ Module.register("weatherforecast", {
 	 * That object has a property "3h" which contains the amount of rain since the previous forecast in the list.
 	 * This code finds all forecasts that is for the same day and sums the amount of rain and returns that.
 	 */
-	processRain: function (forecast, allForecasts) {
+	processRain: function (forecast, allForecasts, momenttz) {
+		let mom = momenttz ? momenttz : moment; // Exception last.
+
 		//If the amount of rain actually is a number, return it
 		if (!isNaN(forecast.rain)) {
 			return forecast.rain;
 		}
 
 		//Find all forecasts that is for the same day
-		var checkDateTime = forecast.dt_txt ? moment(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss") : moment(forecast.dt, "X");
+		var checkDateTime = forecast.dt_txt ? mom(forecast.dt_txt, "YYYY-MM-DD hh:mm:ss") : mom(forecast.dt, "X");
 		var daysForecasts = allForecasts.filter(function (item) {
-			var itemDateTime = item.dt_txt ? moment(item.dt_txt, "YYYY-MM-DD hh:mm:ss") : moment(item.dt, "X");
+			var itemDateTime = item.dt_txt ? mom(item.dt_txt, "YYYY-MM-DD hh:mm:ss") : mom(item.dt, "X");
 			return itemDateTime.isSame(checkDateTime, "day") && item.rain instanceof Object;
 		});
 

@@ -1,13 +1,13 @@
-const expect = require("chai").expect;
 const path = require("path");
 const helmet = require("helmet");
 const { JSDOM } = require("jsdom");
 const express = require("express");
+const sockets = new Set();
 
 describe("Translator", function () {
 	let server;
 
-	before(function () {
+	beforeAll(function () {
 		const app = express();
 		app.use(helmet());
 		app.use(function (req, res, next) {
@@ -17,9 +17,19 @@ describe("Translator", function () {
 		app.use("/translations", express.static(path.join(__dirname, "..", "..", "..", "tests", "configs", "data")));
 
 		server = app.listen(3000);
+
+		server.on("connection", (socket) => {
+			sockets.add(socket);
+		});
 	});
 
-	after(function () {
+	afterAll(function () {
+		for (const socket of sockets) {
+			socket.destroy();
+
+			sockets.delete(socket);
+		}
+
 		server.close();
 	});
 
@@ -65,71 +75,71 @@ describe("Translator", function () {
 		}
 
 		it("should return custom module translation", function (done) {
-			const dom = new JSDOM(`<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				setTranslations(Translator);
 				let translation = Translator.translate({ name: "MMM-Module" }, "Hello");
-				expect(translation).to.be.equal("Hallo");
+				expect(translation).toBe("Hallo");
 				translation = Translator.translate({ name: "MMM-Module" }, "Hello {username}", { username: "fewieden" });
-				expect(translation).to.be.equal("Hallo fewieden");
+				expect(translation).toBe("Hallo fewieden");
 				done();
 			};
 		});
 
 		it("should return core translation", function (done) {
-			const dom = new JSDOM(`<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				setTranslations(Translator);
 				let translation = Translator.translate({ name: "MMM-Module" }, "FOO");
-				expect(translation).to.be.equal("Foo");
+				expect(translation).toBe("Foo");
 				translation = Translator.translate({ name: "MMM-Module" }, "BAR {something}", { something: "Lorem Ipsum" });
-				expect(translation).to.be.equal("Bar Lorem Ipsum");
+				expect(translation).toBe("Bar Lorem Ipsum");
 				done();
 			};
 		});
 
 		it("should return custom module translation fallback", function (done) {
-			const dom = new JSDOM(`<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				setTranslations(Translator);
 				const translation = Translator.translate({ name: "MMM-Module" }, "A key");
-				expect(translation).to.be.equal("A translation");
+				expect(translation).toBe("A translation");
 				done();
 			};
 		});
 
 		it("should return core translation fallback", function (done) {
-			const dom = new JSDOM(`<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				setTranslations(Translator);
 				const translation = Translator.translate({ name: "MMM-Module" }, "Fallback");
-				expect(translation).to.be.equal("core fallback");
+				expect(translation).toBe("core fallback");
 				done();
 			};
 		});
 
 		it("should return translation with placeholder for missing variables", function (done) {
-			const dom = new JSDOM(`<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				setTranslations(Translator);
 				const translation = Translator.translate({ name: "MMM-Module" }, "Hello {username}");
-				expect(translation).to.be.equal("Hallo {username}");
+				expect(translation).toBe("Hallo {username}");
 				done();
 			};
 		});
 
 		it("should return key if no translation was found", function (done) {
-			const dom = new JSDOM(`<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				setTranslations(Translator);
 				const translation = Translator.translate({ name: "MMM-Module" }, "MISSING");
-				expect(translation).to.be.equal("MISSING");
+				expect(translation).toBe("MISSING");
 				done();
 			};
 		});
@@ -144,35 +154,35 @@ describe("Translator", function () {
 		};
 
 		it("should load translations", function (done) {
-			const dom = new JSDOM(`<script>var Log = {log: function(){}};</script><script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script>var Log = {log: function(){}};</script><script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				const file = "TranslationTest.json";
 
 				Translator.load(mmm, file, false, function () {
 					const json = require(path.join(__dirname, "..", "..", "..", "tests", "configs", "data", file));
-					expect(Translator.translations[mmm.name]).to.be.deep.equal(json);
+					expect(Translator.translations[mmm.name]).toEqual(json);
 					done();
 				});
 			};
 		});
 
 		it("should load translation fallbacks", function (done) {
-			const dom = new JSDOM(`<script>var Log = {log: function(){}};</script><script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script>var Log = {log: function(){}};</script><script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator } = dom.window;
 				const file = "TranslationTest.json";
 
 				Translator.load(mmm, file, true, function () {
 					const json = require(path.join(__dirname, "..", "..", "..", "tests", "configs", "data", file));
-					expect(Translator.translationsFallback[mmm.name]).to.be.deep.equal(json);
+					expect(Translator.translationsFallback[mmm.name]).toEqual(json);
 					done();
 				});
 			};
 		});
 
 		it("should not load translations, if module fallback exists", function (done) {
-			const dom = new JSDOM(`<script>var Log = {log: function(){}};</script><script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
+			const dom = new JSDOM(`<script>var Log = {log: function(){}};</script><script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`, { runScripts: "dangerously", resources: "usable" });
 			dom.window.onload = function () {
 				const { Translator, XMLHttpRequest } = dom.window;
 				const file = "TranslationTest.json";
@@ -186,8 +196,8 @@ describe("Translator", function () {
 				};
 
 				Translator.load(mmm, file, false, function () {
-					expect(Translator.translations[mmm.name]).to.be.equal(undefined);
-					expect(Translator.translationsFallback[mmm.name]).to.be.deep.equal({
+					expect(Translator.translations[mmm.name]).toBe(undefined);
+					expect(Translator.translationsFallback[mmm.name]).toEqual({
 						Hello: "Hallo"
 					});
 					done();
@@ -200,7 +210,7 @@ describe("Translator", function () {
 		it("should load core translations and fallback", function (done) {
 			const dom = new JSDOM(
 				`<script>var translations = {en: "http://localhost:3000/translations/en.json"}; var Log = {log: function(){}};</script>\
-					<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
+					<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
 				{ runScripts: "dangerously", resources: "usable" }
 			);
 			dom.window.onload = function () {
@@ -209,8 +219,8 @@ describe("Translator", function () {
 
 				const en = require(path.join(__dirname, "..", "..", "..", "tests", "configs", "data", "en.json"));
 				setTimeout(function () {
-					expect(Translator.coreTranslations).to.be.deep.equal(en);
-					expect(Translator.coreTranslationsFallback).to.be.deep.equal(en);
+					expect(Translator.coreTranslations).toEqual(en);
+					expect(Translator.coreTranslationsFallback).toEqual(en);
 					done();
 				}, 500);
 			};
@@ -219,7 +229,7 @@ describe("Translator", function () {
 		it("should load core fallback if language cannot be found", function (done) {
 			const dom = new JSDOM(
 				`<script>var translations = {en: "http://localhost:3000/translations/en.json"}; var Log = {log: function(){}};</script>\
-					<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
+					<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
 				{ runScripts: "dangerously", resources: "usable" }
 			);
 			dom.window.onload = function () {
@@ -228,8 +238,8 @@ describe("Translator", function () {
 
 				const en = require(path.join(__dirname, "..", "..", "..", "tests", "configs", "data", "en.json"));
 				setTimeout(function () {
-					expect(Translator.coreTranslations).to.be.deep.equal({});
-					expect(Translator.coreTranslationsFallback).to.be.deep.equal(en);
+					expect(Translator.coreTranslations).toEqual({});
+					expect(Translator.coreTranslationsFallback).toEqual(en);
 					done();
 				}, 500);
 			};
@@ -240,7 +250,7 @@ describe("Translator", function () {
 		it("should load core translations fallback", function (done) {
 			const dom = new JSDOM(
 				`<script>var translations = {en: "http://localhost:3000/translations/en.json"}; var Log = {log: function(){}};</script>\
-					<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
+					<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
 				{ runScripts: "dangerously", resources: "usable" }
 			);
 			dom.window.onload = function () {
@@ -249,7 +259,7 @@ describe("Translator", function () {
 
 				const en = require(path.join(__dirname, "..", "..", "..", "tests", "configs", "data", "en.json"));
 				setTimeout(function () {
-					expect(Translator.coreTranslationsFallback).to.be.deep.equal(en);
+					expect(Translator.coreTranslationsFallback).toEqual(en);
 					done();
 				}, 500);
 			};
@@ -258,7 +268,7 @@ describe("Translator", function () {
 		it("should load core fallback if language cannot be found", function (done) {
 			const dom = new JSDOM(
 				`<script>var translations = {}; var Log = {log: function(){}};</script>\
-					<script src="${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
+					<script src="file://${path.join(__dirname, "..", "..", "..", "js", "translator.js")}">`,
 				{ runScripts: "dangerously", resources: "usable" }
 			);
 			dom.window.onload = function () {
@@ -266,7 +276,7 @@ describe("Translator", function () {
 				Translator.loadCoreTranslations();
 
 				setTimeout(function () {
-					expect(Translator.coreTranslationsFallback).to.be.deep.equal({});
+					expect(Translator.coreTranslationsFallback).toEqual({});
 					done();
 				}, 500);
 			};

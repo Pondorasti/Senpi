@@ -2,7 +2,7 @@
 
 // Use separate scope to prevent global scope pollution
 (function () {
-	var config = {};
+	const config = {};
 
 	/**
 	 * Helper function to get server address/hostname from either the commandline or env
@@ -14,12 +14,11 @@
 		 *
 		 * @param {string} key key to look for at the command line
 		 * @param {string} defaultValue value if no key is given at the command line
-		 *
 		 * @returns {string} the value of the parameter
 		 */
 		function getCommandLineParameter(key, defaultValue = undefined) {
-			var index = process.argv.indexOf(`--${key}`);
-			var value = index > -1 ? process.argv[index + 1] : undefined;
+			const index = process.argv.indexOf(`--${key}`);
+			const value = index > -1 ? process.argv[index + 1] : undefined;
 			return value !== undefined ? String(value) : defaultValue;
 		}
 
@@ -36,7 +35,6 @@
 	 * Gets the config from the specified server url
 	 *
 	 * @param {string} url location where the server is running.
-	 *
 	 * @returns {Promise} the config
 	 */
 	function getServerConfig(url) {
@@ -45,7 +43,7 @@
 			// Select http or https module, depending on requested url
 			const lib = url.startsWith("https") ? require("https") : require("http");
 			const request = lib.get(url, (response) => {
-				var configData = "";
+				let configData = "";
 
 				// Gather incoming data
 				response.on("data", function (chunk) {
@@ -66,7 +64,7 @@
 	/**
 	 * Print a message to the console in case of errors
 	 *
-	 * @param {string} [message] error message to print
+	 * @param {string} message error message to print
 	 * @param {number} code error code for the exit call
 	 */
 	function fail(message, code = 1) {
@@ -81,15 +79,15 @@
 	getServerAddress();
 
 	(config.address && config.port) || fail();
-	var prefix = config.tls ? "https://" : "http://";
+	const prefix = config.tls ? "https://" : "http://";
 
 	// Only start the client if a non-local server was provided
 	if (["localhost", "127.0.0.1", "::1", "::ffff:127.0.0.1", undefined].indexOf(config.address) === -1) {
 		getServerConfig(`${prefix}${config.address}:${config.port}/config/`)
 			.then(function (configReturn) {
 				// Pass along the server config via an environment variable
-				var env = Object.create(process.env);
-				var options = { env: env };
+				const env = Object.create(process.env);
+				const options = { env: env };
 				configReturn.address = config.address;
 				configReturn.port = config.port;
 				configReturn.tls = config.tls;

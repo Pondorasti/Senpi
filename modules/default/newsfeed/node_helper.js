@@ -6,9 +6,8 @@
  */
 
 const NodeHelper = require("node_helper");
-const validUrl = require("valid-url");
 const NewsfeedFetcher = require("./newsfeedfetcher.js");
-const Log = require("../../../js/logger");
+const Log = require("logger");
 
 module.exports = NodeHelper.create({
 	// Override start method.
@@ -28,22 +27,25 @@ module.exports = NodeHelper.create({
 	 * Creates a fetcher for a new feed if it doesn't exist yet.
 	 * Otherwise it reuses the existing one.
 	 *
-	 * @param {object} feed The feed object.
-	 * @param {object} config The configuration object.
+	 * @param {object} feed The feed object
+	 * @param {object} config The configuration object
 	 */
 	createFetcher: function (feed, config) {
 		const url = feed.url || "";
 		const encoding = feed.encoding || "UTF-8";
 		const reloadInterval = feed.reloadInterval || config.reloadInterval || 5 * 60 * 1000;
 
-		if (!validUrl.isUri(url)) {
-			this.sendSocketNotification("INCORRECT_URL", url);
+		try {
+			new URL(url);
+		} catch (error) {
+			Log.error("Newsfeed Error. Malformed newsfeed url: ", url, error);
+			this.sendSocketNotification("NEWSFEED_ERROR", { error_type: "MODULE_ERROR_MALFORMED_URL" });
 			return;
 		}
 
 		let fetcher;
 		if (typeof this.fetchers[url] === "undefined") {
-			Log.log("Create new news fetcher for url: " + url + " - Interval: " + reloadInterval);
+			Log.log("Create new newsfetcher for url: " + url + " - Interval: " + reloadInterval);
 			fetcher = new NewsfeedFetcher(url, reloadInterval, encoding, config.logFeedWarnings);
 
 			fetcher.onReceive(() => {
@@ -51,15 +53,16 @@ module.exports = NodeHelper.create({
 			});
 
 			fetcher.onError((fetcher, error) => {
-				this.sendSocketNotification("FETCH_ERROR", {
-					url: fetcher.url(),
-					error: error
+				Log.error("Newsfeed Error. Could not fetch newsfeed: ", url, error);
+				let error_type = NodeHelper.checkFetchError(error);
+				this.sendSocketNotification("NEWSFEED_ERROR", {
+					error_type
 				});
 			});
 
 			this.fetchers[url] = fetcher;
 		} else {
-			Log.log("Use existing news fetcher for url: " + url);
+			Log.log("Use existing newsfetcher for url: " + url);
 			fetcher = this.fetchers[url];
 			fetcher.setReloadInterval(reloadInterval);
 			fetcher.broadcastItems();
@@ -73,8 +76,8 @@ module.exports = NodeHelper.create({
 	 * and broadcasts these using sendSocketNotification.
 	 */
 	broadcastFeeds: function () {
-		var feeds = {};
-		for (var f in this.fetchers) {
+		const feeds = {};
+		for (let f in this.fetchers) {
 			feeds[f] = this.fetchers[f].items();
 		}
 		this.sendSocketNotification("NEWS_ITEMS", feeds);

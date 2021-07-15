@@ -1,16 +1,10 @@
 const helpers = require("./global-setup");
-const request = require("request");
-const expect = require("chai").expect;
-
-const describe = global.describe;
-const it = global.it;
-const beforeEach = global.beforeEach;
-const afterEach = global.afterEach;
+const fetch = require("node-fetch");
 
 describe("port directive configuration", function () {
 	helpers.setupTimeout(this);
 
-	var app = null;
+	let app = null;
 
 	beforeEach(function () {
 		return helpers
@@ -27,33 +21,33 @@ describe("port directive configuration", function () {
 	});
 
 	describe("Set port 8090", function () {
-		before(function () {
+		beforeAll(function () {
 			// Set config sample for use in this test
 			process.env.MM_CONFIG_FILE = "tests/configs/port_8090.js";
 		});
 
 		it("should return 200", function (done) {
-			request.get("http://localhost:8090", function (err, res, body) {
-				expect(res.statusCode).to.equal(200);
+			fetch("http://localhost:8090").then((res) => {
+				expect(res.status).toBe(200);
 				done();
 			});
 		});
 	});
 
 	describe("Set port 8100 on environment variable MM_PORT", function () {
-		before(function () {
+		beforeAll(function () {
 			process.env.MM_PORT = 8100;
 			// Set config sample for use in this test
 			process.env.MM_CONFIG_FILE = "tests/configs/port_8090.js";
 		});
 
-		after(function () {
+		afterAll(function () {
 			delete process.env.MM_PORT;
 		});
 
 		it("should return 200", function (done) {
-			request.get("http://localhost:8100", function (err, res, body) {
-				expect(res.statusCode).to.equal(200);
+			fetch("http://localhost:8100").then((res) => {
+				expect(res.status).toBe(200);
 				done();
 			});
 		});

@@ -1,16 +1,10 @@
 const helpers = require("./global-setup");
-const request = require("request");
-const expect = require("chai").expect;
-
-const describe = global.describe;
-const it = global.it;
-const beforeEach = global.beforeEach;
-const afterEach = global.afterEach;
+const fetch = require("node-fetch");
 
 describe("ipWhitelist directive configuration", function () {
 	helpers.setupTimeout(this);
 
-	var app = null;
+	let app = null;
 
 	beforeEach(function () {
 		return helpers
@@ -27,26 +21,28 @@ describe("ipWhitelist directive configuration", function () {
 	});
 
 	describe("Set ipWhitelist without access", function () {
-		before(function () {
+		beforeAll(function () {
 			// Set config sample for use in test
 			process.env.MM_CONFIG_FILE = "tests/configs/noIpWhiteList.js";
 		});
+
 		it("should return 403", function (done) {
-			request.get("http://localhost:8080", function (err, res, body) {
-				expect(res.statusCode).to.equal(403);
+			fetch("http://localhost:8080").then((res) => {
+				expect(res.status).toBe(403);
 				done();
 			});
 		});
 	});
 
 	describe("Set ipWhitelist []", function () {
-		before(function () {
+		beforeAll(function () {
 			// Set config sample for use in test
 			process.env.MM_CONFIG_FILE = "tests/configs/empty_ipWhiteList.js";
 		});
+
 		it("should return 200", function (done) {
-			request.get("http://localhost:8080", function (err, res, body) {
-				expect(res.statusCode).to.equal(200);
+			fetch("http://localhost:8080").then((res) => {
+				expect(res.status).toBe(200);
 				done();
 			});
 		});

@@ -4,11 +4,10 @@
  * MIT Licensed.
  *
  * For more information on how you can configure this file
- * See https://github.com/MichMich/MagicMirror#configuration
- *
+ * see https://docs.magicmirror.builders/getting-started/configuration.html#general
+ * and https://docs.magicmirror.builders/modules/configuration.html
  */
-
-var config = {
+let config = {
 	address: "localhost", 	// Address to listen on, can be:
 							// - "localhost", "127.0.0.1", "::1" to listen on loopback interface
 							// - another specific IPv4/6 to listen on a specific interface
@@ -28,7 +27,8 @@ var config = {
 	httpsCertificate: "", 	// HTTPS Certificate path, only require when useHttps is true
 
 	language: "en",
-	logLevel: ["INFO", "LOG", "WARN", "ERROR"],
+	locale: "en-US",
+	logLevel: ["INFO", "LOG", "WARN", "ERROR"], // Add "DEBUG" for even more logging
 	timeFormat: 24,
 	units: "metric",
 	// serverOnly:  true/false/"local" ,
@@ -66,22 +66,26 @@ var config = {
 			position: "lower_third"
 		},
 		{
-			module: "currentweather",
+			module: "weather",
 			position: "top_right",
 			config: {
+				weatherProvider: "openweathermap",
+				type: "current",
 				location: "New York",
-				locationID: "", //ID from http://bulk.openweathermap.org/sample/city.list.json.gz; unzip the gz file and find your city
-				appid: "YOUR_OPENWEATHER_API_KEY"
+				locationID: "5128581", //ID from http://bulk.openweathermap.org/sample/city.list.json.gz; unzip the gz file and find your city
+				apiKey: "YOUR_OPENWEATHER_API_KEY"
 			}
 		},
 		{
-			module: "weatherforecast",
+			module: "weather",
 			position: "top_right",
 			header: "Weather Forecast",
 			config: {
+				weatherProvider: "openweathermap",
+				type: "forecast",
 				location: "New York",
 				locationID: "5128581", //ID from http://bulk.openweathermap.org/sample/city.list.json.gz; unzip the gz file and find your city
-				appid: "YOUR_OPENWEATHER_API_KEY"
+				apiKey: "YOUR_OPENWEATHER_API_KEY"
 			}
 		},
 		{

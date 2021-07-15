@@ -4,9 +4,10 @@
  * By Michael Teeuw https://michaelteeuw.nl
  * MIT Licensed.
  */
-const Log = require("../../../js/logger.js");
+const Log = require("logger");
 const FeedMe = require("feedme");
-const request = require("request");
+const NodeHelper = require("node_helper");
+const fetch = require("node-fetch");
 const iconv = require("iconv-lite");
 
 /**
@@ -19,8 +20,6 @@ const iconv = require("iconv-lite");
  * @class
  */
 const NewsfeedFetcher = function (url, reloadInterval, encoding, logFeedWarnings) {
-	const self = this;
-
 	let reloadTimer = null;
 	let items = [];
 
@@ -36,14 +35,14 @@ const NewsfeedFetcher = function (url, reloadInterval, encoding, logFeedWarnings
 	/**
 	 * Request the new items.
 	 */
-	const fetchNews = function () {
+	const fetchNews = () => {
 		clearTimeout(reloadTimer);
 		reloadTimer = null;
 		items = [];
 
 		const parser = new FeedMe();
 
-		parser.on("item", function (item) {
+		parser.on("item", (item) => {
 			const title = item.title;
 			let description = item.description || item.summary || item.content || "";
 			const pubdate = item.pubdate || item.published || item.updated || item["dc:date"];
@@ -68,33 +67,32 @@ const NewsfeedFetcher = function (url, reloadInterval, encoding, logFeedWarnings
 			}
 		});
 
-		parser.on("end", function () {
-			self.broadcastItems();
+		parser.on("end", () => {
+			this.broadcastItems();
 			scheduleTimer();
 		});
 
-		parser.on("error", function (error) {
-			fetchFailedCallback(self, error);
+		parser.on("error", (error) => {
+			fetchFailedCallback(this, error);
 			scheduleTimer();
 		});
 
 		const nodeVersion = Number(process.version.match(/^v(\d+\.\d+)/)[1]);
-		const opts = {
-			headers: {
-				"User-Agent": "Mozilla/5.0 (Node.js " + nodeVersion + ") MagicMirror/" + global.version + " (https://github.com/MichMich/MagicMirror/)",
-				"Cache-Control": "max-age=0, no-cache, no-store, must-revalidate",
-				Pragma: "no-cache"
-			},
-			encoding: null
+		const headers = {
+			"User-Agent": "Mozilla/5.0 (Node.js " + nodeVersion + ") MagicMirror/" + global.version + " (https://github.com/MichMich/MagicMirror/)",
+			"Cache-Control": "max-age=0, no-cache, no-store, must-revalidate",
+			Pragma: "no-cache"
 		};
 
-		request(url, opts)
-			.on("error", function (error) {
-				fetchFailedCallback(self, error);
-				scheduleTimer();
+		fetch(url, { headers: headers })
+			.then(NodeHelper.checkFetchStatus)
+			.then((response) => {
+				response.body.pipe(iconv.decodeStream(encoding)).pipe(parser);
 			})
-			.pipe(iconv.decodeStream(encoding))
-			.pipe(parser);
+			.catch((error) => {
+				fetchFailedCallback(this, error);
+				scheduleTimer();
+			});
 	};
 
 	/**
@@ -136,7 +134,7 @@ const NewsfeedFetcher = function (url, reloadInterval, encoding, logFeedWarnings
 			return;
 		}
 		Log.info("Newsfeed-Fetcher: Broadcasting " + items.length + " items.");
-		itemsReceivedCallback(self);
+		itemsReceivedCallback(this);
 	};
 
 	this.onReceive = function (callback) {

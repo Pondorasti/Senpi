@@ -12,16 +12,10 @@ Module.register("weather", {
 		weatherProvider: "openweathermap",
 		roundTemp: false,
 		type: "current", // current, forecast, daily (equivalent to forecast), hourly (only with OpenWeatherMap /onecall endpoint)
-
-		lat: 0,
-		lon: 0,
-		location: false,
-		locationID: false,
 		units: config.units,
-
+		useKmh: false,
 		tempUnits: config.units,
 		windUnits: config.units,
-
 		updateInterval: 10 * 60 * 1000, // every 10 minutes
 		animationSpeed: 1000,
 		timeFormat: config.timeFormat,
@@ -39,22 +33,13 @@ Module.register("weather", {
 		showIndoorHumidity: false,
 		maxNumberOfDays: 5,
 		maxEntries: 5,
+		ignoreToday: false,
 		fade: true,
 		fadePoint: 0.25, // Start on 1/4th of the list.
-
 		initialLoadDelay: 0, // 0 seconds delay
-		retryDelay: 2500,
-
-		apiKey: "",
-		apiSecret: "",
-		apiVersion: "2.5",
-		apiBase: "https://api.openweathermap.org/data/", // TODO: this should not be part of the weather.js file, but should be contained in the openweatherprovider
-		weatherEndpoint: "/weather",
-
 		appendLocationNameToHeader: true,
 		calendarClass: "calendar",
 		tableClass: "small",
-
 		onlyTemp: false,
 		showPrecipitationAmount: false,
 		colored: false,
@@ -63,6 +48,9 @@ Module.register("weather", {
 
 	// Module properties.
 	weatherProvider: null,
+
+	// Can be used by the provider to display location of event if nothing else is specified
+	firstEvent: null,
 
 	// Define required scripts.
 	getStyles: function () {
@@ -104,15 +92,13 @@ Module.register("weather", {
 	// Override notification handler.
 	notificationReceived: function (notification, payload, sender) {
 		if (notification === "CALENDAR_EVENTS") {
-			var senderClasses = sender.data.classes.toLowerCase().split(" ");
+			const senderClasses = sender.data.classes.toLowerCase().split(" ");
 			if (senderClasses.indexOf(this.config.calendarClass.toLowerCase()) !== -1) {
-				this.firstEvent = false;
-
-				for (var e in payload) {
-					var event = payload[e];
+				this.firstEvent = null;
+				for (let event of payload) {
 					if (event.location || event.geo) {
 						this.firstEvent = event;
-						//Log.log("First upcoming event with location: ", event);
+						Log.debug("First upcoming event with location: ", event);
 						break;
 					}
 				}
@@ -130,24 +116,31 @@ Module.register("weather", {
 	getTemplate: function () {
 		switch (this.config.type.toLowerCase()) {
 			case "current":
-				return `current.njk`;
+				return "current.njk";
 			case "hourly":
-				return `hourly.njk`;
+				return "hourly.njk";
 			case "daily":
 			case "forecast":
-				return `forecast.njk`;
+				return "forecast.njk";
+			//Make the invalid values use the "Loading..." from forecast
 			default:
-				return `${this.config.type.toLowerCase()}.njk`;
+				return "forecast.njk";
 		}
 	},
 
 	// Add all the data to the template.
 	getTemplateData: function () {
+		const forecast = this.weatherProvider.weatherForecast();
+
+		if (this.config.ignoreToday) {
+			forecast.splice(0, 1);
+		}
+
 		return {
 			config: this.config,
 			current: this.weatherProvider.currentWeather(),
-			forecast: this.weatherProvider.weatherForecast(),
-			weatherData: this.weatherProvider.weatherData(),
+			forecast: forecast,
+			hourly: this.weatherProvider.weatherHourly(),
 			indoor: {
 				humidity: this.indoorHumidity,
 				temperature: this.indoorTemperature
@@ -160,28 +153,40 @@ Module.register("weather", {
 		Log.log("New weather information available.");
 		this.updateDom(0);
 		this.scheduleUpdate();
+
+		if (this.weatherProvider.currentWeather()) {
+			this.sendNotification("CURRENTWEATHER_TYPE", { type: this.weatherProvider.currentWeather().weatherType.replace("-", "_") });
+		}
 	},
 
 	scheduleUpdate: function (delay = null) {
-		var nextLoad = this.config.updateInterval;
+		let nextLoad = this.config.updateInterval;
 		if (delay !== null && delay >= 0) {
 			nextLoad = delay;
 		}
 
 		setTimeout(() => {
-			if (this.config.weatherEndpoint === "/onecall") {
-				this.weatherProvider.fetchWeatherData();
-			} else if (this.config.type === "forecast") {
-				this.weatherProvider.fetchWeatherForecast();
-			} else {
-				this.weatherProvider.fetchCurrentWeather();
+			switch (this.config.type.toLowerCase()) {
+				case "current":
+					this.weatherProvider.fetchCurrentWeather();
+					break;
+				case "hourly":
+					this.weatherProvider.fetchWeatherHourly();
+					break;
+				case "daily":
+				case "forecast":
+					this.weatherProvider.fetchWeatherForecast();
+					break;
+				default:
+					Log.error(`Invalid type ${this.config.type} configured (must be one of 'current', 'hourly', 'daily' or 'forecast')`);
 			}
 		}, nextLoad);
 	},
 
 	roundValue: function (temperature) {
-		var decimals = this.config.roundTemp ? 0 : 1;
-		return parseFloat(temperature).toFixed(decimals);
+		const decimals = this.config.roundTemp ? 0 : 1;
+		const roundValue = parseFloat(temperature).toFixed(decimals);
+		return roundValue === "-0" ? 0 : roundValue;
 	},
 
 	addFilters() {
@@ -275,8 +280,8 @@ Module.register("weather", {
 					if (this.config.fadePoint < 0) {
 						this.config.fadePoint = 0;
 					}
-					var startingPoint = numSteps * this.config.fadePoint;
-					var numFadesteps = numSteps - startingPoint;
+					const startingPoint = numSteps * this.config.fadePoint;
+					const numFadesteps = numSteps - startingPoint;
 					if (currentStep >= startingPoint) {
 						return 1 - (currentStep - startingPoint) / numFadesteps;
 					} else {
