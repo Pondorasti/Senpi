@@ -1,0 +1,8 @@
+# Montly reboot
+0 0 8 * * /sbin/shutdown -r now
+
+# Turn monitor on
+0 6  * * * /usr/bin/vcgencmd display_power 1
+
+# Turn monitor off
+0 22 * * * /usr/bin/vcgencmd display_power 0
